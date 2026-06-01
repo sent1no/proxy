@@ -3,16 +3,15 @@ services:
     build: .
     container_name: dean_office_api
     ports:
-      - "3010:3010"
+      - "${PORT:-8000}:8000"
     volumes:
       - .:/app_code
       - db_data:/app_code/data
     environment:
       - PYTHONUNBUFFERED=1
       - JWT_SECRET_KEY=my-dev-secret-key-32-chars-long!!
-      # Практична №7: ключ шифрування Fernet (AES-128-CBC)
-      # Згенеруйте свій: python scripts/generate_key.py
       - ENCRYPTION_KEY=ZmDfcTF7_60GrrY167zsiPd67pEvs0aGOv2oasOM1Pg=
+      - PORT=8000
     restart: unless-stopped
 
 volumes:

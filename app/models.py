@@ -168,3 +168,24 @@ class Grade(Base):
         return (f"<Grade student={self.student_id} "
                 f"subject={self.subject_id} "
                 f"grade={self.grade}>")
+
+
+# Практична №8: Журналювання подій та аудит безпеки
+class AuditLog(Base):
+    __tablename__ = "audit_log"
+
+    id = Column(Integer, primary_key=True, index=True)
+    timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+    actor_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    action = Column(String(100), nullable=False, index=True)
+    resource_type = Column(String(50), nullable=True)
+    resource_id = Column(String(50), nullable=True)
+    ip_address = Column(String(45), nullable=True)
+    user_agent = Column(String(255), nullable=True)
+    status = Column(String(20), nullable=False, default="success")
+    details = Column(Text, nullable=True)
+
+    actor = relationship("User", foreign_keys=[actor_user_id])
+
+    def __repr__(self):
+        return f"<AuditLog {self.action} by {self.actor_user_id} at {self.timestamp}>"

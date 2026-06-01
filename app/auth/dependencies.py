@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from jose import JWTError
@@ -7,17 +7,18 @@ from app.database import get_db
 from app.models import User
 from app.auth.jwt_handler import verify_token
 
-# Схема Bearer — витягує токен із заголовка Authorization: Bearer <token>
+# Схема Bearer — витягує токен із заголовка Authorization: Bearer ***
 security = HTTPBearer()
 
 
 def get_current_user(
+    request: Request,
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_db)
 ) -> User:
     """
     Dependency, що перевіряє JWT та повертає об'єкт User.
-    Використовується у кожному захищеному ендпоінті.
+    Також зберігає ідентифікатор користувача в request.state для аудиту.
     """
     token = credentials.credentials
 
@@ -51,6 +52,7 @@ def get_current_user(
             detail="Користувача не знайдено",
         )
 
+    request.state.user_id = user.id
     return user
 
 

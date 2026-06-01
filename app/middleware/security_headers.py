@@ -2,17 +2,17 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
 
-# Маршрути Swagger UI / ReDoc — не застосовуємо жорсткий CSP
+# Маршрути Swagger UI / ReDoc — застосовуємо пом'якшений CSP
 DOCS_PATHS = {"/docs", "/redoc", "/openapi.json"}
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     """
     Middleware для додавання захисних HTTP-заголовків.
-    Налаштовує CSP, HSTS, X-Frame-Options тощо.
     Для /docs та /redoc застосовується пом'якшений CSP,
     щоб Swagger UI міг завантажити ресурси з CDN.
     """
+
     async def dispatch(self, request: Request, call_next) -> Response:
         response = await call_next(request)
 
@@ -20,7 +20,6 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
         if is_docs:
             # Пом'якшений CSP для Swagger UI / ReDoc
-            # Дозволяємо CDN jsdelivr + unpkg (FastAPI використовує обидва)
             response.headers["Content-Security-Policy"] = (
                 "default-src 'self'; "
                 "script-src 'self' 'unsafe-inline' 'unsafe-eval' "

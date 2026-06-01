@@ -1,29 +1,33 @@
 # Electronic Dean's Office
-## Опис
-REST API на базі FastAPI + SQLite. Практична робота з дисципліни
-"Безпека інформаційних систем".
+REST API на базі FastAPI + SQLite. Практичні роботи з дисципліни "Безпека інформаційних систем".
 
 ## Виконані роботи
-### Практична робота №4: Аутентифікація та безпека
-- **Хешування паролів**: Bcrypt (`passlib`) для безпечного зберігання.
-- **Реєстрація та Вхід**: Ендпоінти з валідацією та захистом від enumeration.
-
-### Практична робота №5: JWT та RBAC
-- **JWT (JSON Web Tokens)**: Впроваджено Access та Refresh токени для сесій.
-- **RBAC (Role-Based Access Control)**: Контроль доступу на основі ролей (admin, teacher, student).
-
-### Практична робота №6: Веб-безпека
-- **Санітизація та Валідація**: Захист від XSS через `bleach` та суворі Pydantic-схеми.
-- **HTTP Security Headers**: Налаштовано CSP, X-Frame-Options, HSTS для захисту браузера.
-- **Rate Limiting**: Обмеження частоти запитів для запобігання Brute Force атак.
+- Практична №4: Аутентифікація (Bcrypt, хешування паролів)
+- Практична №5: JWT та RBAC (Access/Refresh токени)
+- Практична №6: Веб-безпека (CSP, Security Headers, XSS, Rate Limit)
+- Практична №7: Field-Level Encryption (Fernet/AES для email, телефон, backup)
+- Практична №8: Аудит безпеки (audit_log, AuditMiddleware, /audit/logs)
 
 ## Запуск
 ```bash
-git clone <url-репозиторію>
-cd 8
+cp .env.example .env    # відредагуйте .env під себе
 docker compose up --build
 ```
+Або без Docker:
+```bash
+pip install -r requirements.txt
+uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
+
 ## Доступ
-- API: http://localhost:3010
-- Документація (Swagger): http://localhost:3010/docs
-- Студент: [Ваше Прізвище Ім'я]  |  Група: [Номер групи]
+- API: http://localhost:8000
+- Документація (Swagger): http://localhost:8000/docs
+- Health: http://localhost:8000/health
+
+## Додаткові скрипти
+```bash
+python scripts/generate_key.py
+python scripts/backup_db.py
+python scripts/migrate_encrypt.py
+alembic upgrade head
+```

@@ -4,6 +4,7 @@ __pycache__/
 .env
 data/
 *.db
+*.db.enc
 .venv/
 venv/
 .idea/

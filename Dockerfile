@@ -12,6 +12,6 @@ COPY . .
 # Створюємо директорії для БД та резервних копій
 RUN mkdir -p /app_code/data /app_code/data/backups /app_code/scripts
 
-EXPOSE 3010
+EXPOSE 8000
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "3010", "--reload"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
