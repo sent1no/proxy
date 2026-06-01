@@ -1,52 +1,48 @@
 import re
 from pydantic import BaseModel, EmailStr, Field, field_validator
 from datetime import datetime
+from .validators.sanitizer import sanitize_text
 
 
 # ── Схеми для реєстрації ──
 
 class UserCreate(BaseModel):
-    """Схема запиту на реєстрацію нового користувача."""
+    """Схема для реєстрації нового користувача з суворою валідацією."""
     username: str = Field(
-        ...,
-        min_length=3,
-        max_length=50,
-        pattern=r"^[a-zA-Z0-9_]+$",
-        description="Логін (латиниця, цифри, підкреслення)"
+        ..., 
+        min_length=3, 
+        max_length=30, 
+        description="Логін: 3-30 символів, лише латиниця, цифри, підкреслення"
     )
-    email: EmailStr = Field(
-        ...,
-        description="Email-адреса"
-    )
-    password: str = Field(
-        ...,
-        min_length=8,
-        max_length=128,
-        description="Пароль (мінімум 8 символів)"
-    )
-    full_name: str = Field(
-        ...,
-        min_length=2,
-        max_length=150,
-        description="Повне ім'я користувача"
-    )
+    email: EmailStr = Field(..., description="Електронна пошта")
+    password: str = Field(..., min_length=8, max_length=128, description="Пароль")
+    full_name: str = Field(..., min_length=2, max_length=100, description="ПІБ")
+
+    @field_validator("username")
+    @classmethod
+    def validate_username(cls, v):
+        if not re.match(r"^[a-zA-Z0-9_]+$", v):
+            raise ValueError("Логін може містити лише латинські літери, цифри та символ підкреслення")
+        return v
+
+    @field_validator("full_name")
+    @classmethod
+    def validate_full_name(cls, v):
+        # Санітизація: видалення HTML-тегів
+        v = sanitize_text(v)
+        if re.search(r"[<>&\"']", v):
+            raise ValueError("Ім’я не може містити спеціальні символи HTML")
+        return v.strip()
 
     @field_validator("password")
     @classmethod
     def validate_password_strength(cls, v):
-        """Перевірка складності пароля."""
         if not re.search(r"[A-Z]", v):
-            raise ValueError(
-                "Пароль має містити хоча б одну велику літеру"
-            )
+            raise ValueError("Пароль повинен містити хоча б одну велику літеру")
         if not re.search(r"[a-z]", v):
-            raise ValueError(
-                "Пароль має містити хоча б одну малу літеру"
-            )
-        if not re.search(r"[0-9]", v):
-            raise ValueError(
-                "Пароль має містити хоча б одну цифру"
-            )
+            raise ValueError("Пароль повинен містити хоча б одну малу літеру")
+        if not re.search(r"\d", v):
+            raise ValueError("Пароль повинен містити хоча б одну цифру")
         return v
 
 

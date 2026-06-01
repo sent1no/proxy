@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from jose import JWTError
 
@@ -8,12 +8,14 @@ from app.auth.jwt_handler import create_access_token, create_refresh_token, veri
 from app.auth.dependencies import get_current_user
 from app.schemas import TokenResponse, TokenRefreshRequest, UserInfo
 from app.security import verify_password
+from app.middleware.rate_limiter import limiter
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
 @router.post("/login", response_model=TokenResponse, summary="Вхід та отримання JWT токенів")
-def login(credentials: dict, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+def login(request: Request, credentials: dict, db: Session = Depends(get_db)):
     """
     Аутентифікація користувача та видача Access та Refresh токенів.
     """
