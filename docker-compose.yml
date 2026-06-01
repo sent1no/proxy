@@ -5,12 +5,15 @@ services:
     ports:
       - "3010:3010"
     volumes:
-      - .:/app_code          	# Hot-reload коду
-      - db_data:/app_code/data   # Персистентність БД
+      - .:/app_code
+      - db_data:/app_code/data
     environment:
       - PYTHONUNBUFFERED=1
       - JWT_SECRET_KEY=my-dev-secret-key-32-chars-long!!
+      # Практична №7: ключ шифрування Fernet (AES-128-CBC)
+      # Згенеруйте свій: python scripts/generate_key.py
+      - ENCRYPTION_KEY=ZmDfcTF7_60GrrY167zsiPd67pEvs0aGOv2oasOM1Pg=
     restart: unless-stopped
- 
+
 volumes:
   db_data:

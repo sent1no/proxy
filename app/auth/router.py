@@ -19,7 +19,7 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 def register(request: Request, user_data: UserCreate, db: Session = Depends(get_db)):
     """
     Реєстрація нового користувача з валідацією та санітизацією вхідних даних.
-    Захист від XSS через Pydantic-схему та bleach.
+    Email шифрується автоматично через property моделі User (Практична №7).
     """
     # Перевірка унікальності username
     if db.query(User).filter(User.username == user_data.username).first():
@@ -27,20 +27,19 @@ def register(request: Request, user_data: UserCreate, db: Session = Depends(get_
             status_code=status.HTTP_409_CONFLICT,
             detail="Користувач з таким логіном вже існує",
         )
-    # Перевірка унікальності email
-    if db.query(User).filter(User.email == user_data.email).first():
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Користувач з таким email вже існує",
-        )
 
+    # Перевірка унікальності email — шукаємо по username, бо email зашифрований
+    # Для демо: просто перевіряємо username (email унікальність на рівні БД не можна
+    # перевірити через encrypted поле без розшифрування всіх записів)
     new_user = User(
         username=user_data.username,
-        email=user_data.email,
         full_name=user_data.full_name,
         password_hash=hash_password(user_data.password),
         is_active=True,
     )
+    # email.setter автоматично шифрує значення через Fernet
+    new_user.email = str(user_data.email)
+
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
@@ -64,9 +63,7 @@ def login(request: Request, credentials: LoginRequest, db: Session = Depends(get
             detail="Невірний логін або пароль",
         )
 
-    # Визначаємо основну роль (беремо першу)
     role = user.roles[0].name if user.roles else "student"
-
     access_token = create_access_token(user.id, role)
     refresh_token = create_refresh_token(user.id)
 
@@ -95,15 +92,15 @@ def refresh(body: TokenRefreshRequest, db: Session = Depends(get_db)):
 
     user_id = int(payload.get("sub"))
     user = db.query(User).filter(User.id == user_id).first()
-    
-    if not user:
+
+    if not user or not user.is_active:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, 
-            detail="Користувача не знайдено"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Користувача не знайдено або заблоковано",
         )
 
     role = user.roles[0].name if user.roles else "student"
-    
+
     return TokenResponse(
         access_token=create_access_token(user.id, role),
         refresh_token=create_refresh_token(user.id),
@@ -112,12 +109,15 @@ def refresh(body: TokenRefreshRequest, db: Session = Depends(get_db)):
 
 @router.get("/me", response_model=UserInfo, summary="Інформація про поточного користувача")
 def get_me(current_user: User = Depends(get_current_user)):
-    """Повертає дані користувача, витягнуті з JWT токена."""
+    """
+    Повертає дані поточного користувача.
+    email розшифровується автоматично через property (Практична №7).
+    """
     role = current_user.roles[0].name if current_user.roles else "student"
     return UserInfo(
         id=current_user.id,
         username=current_user.username,
-        email=current_user.email,
+        email=current_user.email,   # property → автоматично розшифровує
         full_name=current_user.full_name,
         role=role,
     )

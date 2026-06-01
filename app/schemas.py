@@ -47,10 +47,12 @@ class UserCreate(BaseModel):
 
 
 class UserResponse(BaseModel):
-    """Схема відповіді з даними користувача (без пароля!)."""
+    """Схема відповіді з даними користувача (без пароля!).
+    email розшифровується автоматично через property моделі User.
+    """
     id: int
     username: str
-    email: str
+    email: str          # читається через property → розшифровується автоматично
     full_name: str
     is_active: bool
     created_at: datetime
