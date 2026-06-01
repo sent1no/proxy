@@ -20,9 +20,15 @@ if not exist ".git" (
 :: Add and Commit
 echo [INFO] Adding files...
 git add .
-set /p msg="Commit message [Default: 'feat: project setup']: "
-if "!msg!"=="" set msg=feat: project setup
-git commit -m "!msg!"
+:: Check if there are changes to commit
+git diff --cached --quiet
+if !errorlevel! neq 0 (
+    set /p msg="Commit message [Default: 'feat: project update']: "
+    if "!msg!"=="" set msg=feat: project update
+    git commit -m "!msg!"
+) else (
+    echo [INFO] No new changes to commit.
+)
 
 :push_process
 :: Check Remote
