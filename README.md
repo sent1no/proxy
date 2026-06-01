@@ -11,7 +11,11 @@ REST API на базі FastAPI + SQLite. Практична робота з ди
 ### Практична робота №5: JWT та RBAC
 - **JWT (JSON Web Tokens)**: Впроваджено Access та Refresh токени для сесій.
 - **RBAC (Role-Based Access Control)**: Контроль доступу на основі ролей (admin, teacher, student).
-- **Middleware**: Автоматична перевірка токенів та прав доступу для захищених маршрутів.
+
+### Практична робота №6: Веб-безпека
+- **Санітизація та Валідація**: Захист від XSS через `bleach` та суворі Pydantic-схеми.
+- **HTTP Security Headers**: Налаштовано CSP, X-Frame-Options, HSTS для захисту браузера.
+- **Rate Limiting**: Обмеження частоти запитів для запобігання Brute Force атак.
 
 ## Запуск
 ```bash
