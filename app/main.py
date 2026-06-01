@@ -4,10 +4,13 @@ from app.auth.router import router as auth_router
 from app.routes.students import router as students_router
 from app.routes.teachers import router as teachers_router
 from app.routes.admin import router as admin_router
+from app.routes.demo import router as demo_router
 
 from fastapi.middleware.cors import CORSMiddleware
 from app.middleware.security_headers import SecurityHeadersMiddleware
 from app.middleware.rate_limiter import limiter
+from slowapi.errors import RateLimitExceeded
+from slowapi import _rate_limit_exceeded_handler
 
 app = FastAPI(
     title="Електронний деканат",
@@ -15,34 +18,36 @@ app = FastAPI(
     version="0.6.0"
 )
 
-# 1. Додавання HTTP Security Headers
+# 0. Rate Limit — обробник помилок + state
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# 1. HTTP Security Headers
 app.add_middleware(SecurityHeadersMiddleware)
 
-# 2. Налаштування CORS
+# 2. CORS — лише дозволені origins
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000", # Наприклад, для React/Next.js
-        "http://localhost:3010",
+        "http://localhost:3000",
+        "http://localhost:8000",
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["Authorization", "Content-Type"],
 )
 
-# 3. Підключення Rate Limiter до FastAPI state
-app.state.limiter = limiter
-
 # Підключення роутерів
 app.include_router(auth_router)
 app.include_router(students_router)
 app.include_router(teachers_router)
 app.include_router(admin_router)
+app.include_router(demo_router)
 
 
 @app.get("/")
 def root():
-    return {"message": "Електронний деканат API v0.4.0"}
+    return {"message": "Електронний деканат API v0.6.0"}
 
 
 @app.get("/health")
